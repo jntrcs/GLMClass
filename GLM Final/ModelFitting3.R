@@ -9,7 +9,7 @@ scaled_dat<-dat%>%mutate(Income=as.numeric(Income))%>%
                              "AbortionActive", "Income"), .funs=scale) %>%
   mutate_at(c("Children", "Sex", "Married"), funs(scale(as.numeric(factor(.)))))
 
-base.mod<- mvord(formula=MMO2(Elective, Rape, DownSyndrome, Cancer)~
+base.mod_rev<- mvord(formula=MMO2(Elective, Rape, DownSyndrome, Cancer)~
               Age+Sex+ReligionImportance+PoliticallyActive+as.numeric(Income)+AbortionActive+Married+Children, 
             data=data.frame(scaled_dat), 
             error.structure = cov_general())

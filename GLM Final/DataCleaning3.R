@@ -22,6 +22,7 @@ dat<-transmute(data, Time=log(as.numeric(`Duration (in seconds)`)), Age=as.numer
                Married=Q5, Children=Q18, Elective= Q10_2, Rape=Q11_2, DownSyndrome=Q13_2, Cancer=Q15_2) %>%
   replace_na(., replace=list(Age=mean(.$Age, na.rm=T),
                             Elective = "Not at all", DownSyndrome="Not at all"))%>%
+  #Elective = "Extremely", DownSyndrome="Extremely"))%>%
   # I will use the modes for now, but when I am done I will switch to the opposite end of 
   #the spectrum and make sure none of my major conclusions switch.
   #Grieved = "Not at all", Compassionate = "Extremely", Alarmed="Not at all"))%>%

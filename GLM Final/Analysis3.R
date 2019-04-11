@@ -10,6 +10,7 @@ coefs=data.frame(Names=names(coef(base.mod)),Betahat = coef(base.mod), Confint=c
 
 names(coefs)[3:4]<-c("Lower Bound", "Upper Bound")
 coefs_for_plot=coefs%>%separate(Names, into = c("Covariate", "Situation"), sep=" ") %>%
+  mutate(Situation = factor(Situation, ordered=T))%>%
   mutate(Situation = recode(Situation, `1`= "Elective",
                             `2`="Rape",
                             `3`="Down Syndrome",
@@ -18,16 +19,16 @@ coefs_for_plot=coefs%>%separate(Names, into = c("Covariate", "Situation"), sep="
                                                                     ))
         
          
-         )%>% filter(Covariate!="(Intercept)")
+         )%>% filter(Covariate!="(Intercept)")#%>%arrange(Situation)
 
 
-pd <- position_dodge(width=.5)
+pd <- position_dodge(width=-.5)
 
 
 
 
 ggplot(coefs_for_plot, aes(Covariate, y= Betahat, color=Situation))+
-  geom_point(position=pd, size=3, aes(shape=Situation))+
+  geom_point(position= pd, size=3, aes(shape=Situation))+
   geom_errorbar(position = pd,aes(ymin=`Lower Bound`, ymax=`Upper Bound`), size=1.5)+
   scale_shape_manual(values=16:19)+geom_hline(yintercept = 0, size=1)+
   scale_y_continuous(name="Effect on compassion\n Less | More", breaks=c(-1,-.5,0,.5,1))+
