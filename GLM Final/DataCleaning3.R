@@ -19,9 +19,12 @@ dat<-transmute(data, Time=log(as.numeric(`Duration (in seconds)`)), Age=as.numer
                  select(data, starts_with("Q8_")),factor, ordered=T,
                  levels=c("Never", "Rarely", "Occasionally", "Frequently", "Very Frequently")), as.numeric),
                  1, sum),
-               Married=Q5, Children=Q18, Elective= Q10_2, Rape=Q11_2, DownSyndrome=Q13_2, Cancer=Q15_2) %>%
-  replace_na(., replace=list(Age=mean(.$Age, na.rm=T),
-                            Elective = "Not at all", DownSyndrome="Not at all"))%>%
+               Married=Q5, Children=Q18, Elective= Q10_2, Rape=Q11_2, DownSyndrome=Q13_2, Cancer=Q15_2) 
+DS_nas = which(is.na(dat$DownSyndrome))
+El_nas = which(is.na(dat$Elective))
+#There is no reason to replace NAs in the system because the mvord packages handles missing at random
+dat=dat%>%  replace_na(., replace=list(Age=mean(.$Age, na.rm=T)))%>%
+                            #Elective = "Not at all", DownSyndrome="Not at all"))%>%
   #Elective = "Extremely", DownSyndrome="Extremely"))%>%
   # I will use the modes for now, but when I am done I will switch to the opposite end of 
   #the spectrum and make sure none of my major conclusions switch.

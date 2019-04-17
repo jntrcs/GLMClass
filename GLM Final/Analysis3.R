@@ -1,8 +1,11 @@
 library(mvord)
 source("DataCleaning3.R")
 #load("BaseMod.Rdata")
+#load("BestMod.RData")
 library(tidyr)
 library(reshape2)
+
+
 
 
 coefs=data.frame(Names=names(coef(base.mod)),Betahat = coef(base.mod), Confint=confint(base.mod))
@@ -32,7 +35,7 @@ ggplot(coefs_for_plot, aes(Covariate, y= Betahat, color=Situation))+
   geom_errorbar(position = pd,aes(ymin=`Lower Bound`, ymax=`Upper Bound`), size=1.5)+
   scale_shape_manual(values=16:19)+geom_hline(yintercept = 0, size=1)+
   scale_y_continuous(name="Effect on compassion\n Less | More", breaks=c(-1,-.5,0,.5,1))+
-  coord_flip()+ scale_color_brewer(palette="Spectral")#+ggsave("CoefficientPlot.pdf")
+  coord_flip()+ scale_color_brewer(palette="Spectral")#+ggsave("CoefficientPlotBase.pdf")
 
 
 
@@ -40,7 +43,7 @@ gates=melt(rownames_to_column(data.frame(base.mod$theta), "Break"))
 names(gates)[2]<-c("Situation")
 cutoffs=gates%>%mutate(ID= rep(1:4, 4) )%>% group_by(Situation) %>%
   separate(Break, c("Name", "Trash"), "\\|")%>%
-  rename(EndPoint= value)%>%mutate(StartPoint=lag(EndPoint, default=-2),
+  rename(EndPoint= value)%>%mutate(StartPoint=lag(EndPoint, default=-1.5),
     Name= factor(Name, ordered=T,
                  levels=c("Not at all", "A little", "Moderately", "Quite a bit", "Extremely")))%>%
   mutate(MidPoint=(StartPoint+EndPoint)/2)%>%
@@ -62,18 +65,19 @@ predDat<-full_join(truth, preds, by=c("ID", "Situation"))%>%
   mutate(y=(as.numeric(Truth)-.5)
          /5+runif(nrow(.),-.1,.1))
 
+cutoffs$EndPoint[cutoffs$Name=="Extremely" & cutoffs$Situation=="Cancer"]= 3.9
 
 ggplot(cutoffs)+facet_wrap(~Situation)+geom_rect(aes(xmin=StartPoint, xmax=EndPoint, fill=Name,
                                                      ymin=-.1, ymax=1.1), alpha=.3)+
   scale_y_continuous(name="True Response", breaks=1:5/5, 
                      labels=c("Not at all", "A little", "Moderately", "Quite a bit", "Extremely"))+
-  scale_x_continuous(name="Latent Variable Score", 
-                     limits=c(min(predDat$Prediction)-1, .4+max(predDat$Prediction)))+
-  geom_point(data=predDat,aes(x=Prediction, y=y, color=Truth))+
+  scale_x_continuous(name="Predicted Latent Variable Score", 
+                     limits=c(min(predDat$Prediction)-.5, .4+max(predDat$Prediction)))+
+  geom_point(data=predDat[!is.na(predDat$Truth),],aes(x=Prediction, y=y, color=Truth))+
   guides(fill=guide_legend("Latent Cutoffs")) #+ggsave("CutoffPlot.pdf")
 
 
-error_eps<-error_structure(base.mod)[[2]]
+   error_eps<-error_structure(base.mod)[[2]]
 cor_eps<-cov2cor(error_eps)
 library(corrplot)
 

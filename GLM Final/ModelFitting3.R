@@ -5,11 +5,12 @@ source("DataCleaning3.R")
 
 
 scaled_dat<-dat%>%mutate(Income=as.numeric(Income))%>%
+  mutate(LogAge=log(Age), Above30 = as.numeric(Age>30))%>%
   mutate_at(.vars=c("Age", "ReligionImportance", "PoliticallyActive",
-                             "AbortionActive", "Income"), .funs=scale) %>%
+                             "AbortionActive", "Income", "LogAge", "Above30"), .funs=scale) %>%
   mutate_at(c("Children", "Sex", "Married"), funs(scale(as.numeric(factor(.)))))
 
-base.mod_rev<- mvord(formula=MMO2(Elective, Rape, DownSyndrome, Cancer)~
+base.mod<- mvord(formula=MMO2(Elective, Rape, DownSyndrome, Cancer)~
               Age+Sex+ReligionImportance+PoliticallyActive+as.numeric(Income)+AbortionActive+Married+Children, 
             data=data.frame(scaled_dat), 
             error.structure = cov_general())
@@ -20,6 +21,7 @@ summary(base.mod)
 AIC(base.mod)
 
 #save(base.mod, file="BaseMod.Rdata")
+
 
 
 logit.mod<- mvord(formula=MMO2(Elective, Rape, DownSyndrome, Cancer)~
@@ -88,6 +90,44 @@ relagekid.mod<- mvord(formula=MMO2(Elective, Rape, DownSyndrome, Cancer)~
                    error.structure = cov_general())
 
 AIC(relagekid.mod) #Better than just religion and age
+
+
+##What if we log age?
+rellagekid.mod<- mvord(formula=MMO2(Elective, Rape, DownSyndrome, Cancer)~
+                        ReligionImportance+LogAge+Children, 
+                      data=data.frame(scaled_dat), 
+                      error.structure = cov_general())
+AIC(rellagekid.mod) ##Better than unlogged
+
+##What if instead of logging age, we create an indicator for age>30 and add the interaction?
+above30.mod<- mvord(formula=MMO2(Elective, Rape, DownSyndrome, Cancer)~
+                         ReligionImportance+Age+Age:Above30+Children, 
+                       data=data.frame(scaled_dat), 
+                       error.structure = cov_general())
+summary(above30.mod)
+AIC(above30.mod) ##Better than unlogged
+
+##What if add income and income^2?
+rellagekidI.mod<- mvord(formula=MMO2(Elective, Rape, DownSyndrome, Cancer)~
+                         ReligionImportance+LogAge+Children+as.numeric(Income)+
+                         I(as.numeric(Income)^2), 
+                       data=data.frame(scaled_dat), 
+                       error.structure = cov_general())
+AIC(rellagekidI.mod) ##Worse
+
+##What if we add an interaction between religion and children
+rellagekidInter.mod<- mvord(formula=MMO2(Elective, Rape, DownSyndrome, Cancer)~
+                         ReligionImportance*Children+LogAge, 
+                       data=data.frame(scaled_dat), 
+                       error.structure = cov_general())
+AIC(rellagekidInter.mod) ##worse than no interaction
+
+##What if we add an interaction between religion and age
+rellagekidInter2.mod<- mvord(formula=MMO2(Elective, Rape, DownSyndrome, Cancer)~
+                              ReligionImportance*LogAge+Children, 
+                            data=data.frame(scaled_dat), 
+                            error.structure = cov_general())
+AIC(rellagekidInter2.mod) ##worse than no interaction
 
 ##add abortion activity
 abact.mod<- mvord(formula=MMO2(Elective, Rape, DownSyndrome, Cancer)~
