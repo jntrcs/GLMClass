@@ -82,4 +82,4 @@ cor_eps<-cov2cor(error_eps)
 library(corrplot)
 
 corrplot(cor_eps, method = "square",#, main="Correlation of Emotional Reactions",
-         mar=c(0,0,.1,0),addCoef.col = "black", number.cex = .6)
+         mar=c(0,0,.1,0),addCoef.col = "white", number.cex = 1.3)
